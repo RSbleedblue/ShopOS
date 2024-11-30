@@ -19,7 +19,7 @@ const AddProduct = () => {
       reader.onloadend = () => {
         newImagePreviews.push({
           id: (Date.now() + i).toString(),
-          previewUrl: reader.result as string, // Type assertion for the base64 string
+          previewUrl: reader.result as string, 
         });
         if (newImagePreviews.length === files.length) {
           setImagePreviews((prev) => [...prev, ...newImagePreviews]);
