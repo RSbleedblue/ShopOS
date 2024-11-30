@@ -25,7 +25,7 @@ const AddProduct = () => {
           setImagePreviews((prev) => [...prev, ...newImagePreviews]);
         }
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file as any);
     }
   };
 

@@ -47,7 +47,7 @@ const AssetEditor = () => {
               minConstraints={[200, 200]}
               maxConstraints={[500, 500]}
               resizeHandles={["se", "ne", "nw", "sw"]}
-              className="border-2 border-green-500 relative flex items-center justify-center p-4 bg-[#001800]"
+              className="border-2 border-blue-500 relative flex items-center justify-center p-4 bg-black"
             >
               {generatedImageUrl ? (
                 <img
@@ -57,11 +57,8 @@ const AssetEditor = () => {
                 />
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <p className="text-green-400 text-lg font-medium">
-                    Generated images will appear here
-                  </p>
-                  <p className="text-green-400 text-sm mt-2">
-                    Click the "Generate" button.
+                  <p className="text-blue-400 text-lg font-medium">
+                    Generated image will appear here
                   </p>
                 </div>
               )}
