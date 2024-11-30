@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import Draggable from "react-draggable"; // For drag functionality
-import { ResizableBox } from "react-resizable"; // For resize functionality
-import "react-resizable/css/styles.css"; // Import resizable styles
+import Draggable from "react-draggable"; 
+import { ResizableBox } from "react-resizable";
+import "react-resizable/css/styles.css"; 
 
 const AssetEditor = () => {
   const [userImageUrl, setUserImageUrl] = useState("https://img.freepik.com/free-photo/smiling-young-male-professional-standing-with-arms-crossed-while-making-eye-contact-against-isolated-background_662251-838.jpg?semt=ais_hybrid"); // URL for user's uploaded image
-  const [generatedImageUrl, setGeneratedImageUrl] = useState(""); // Placeholder for generated image
+  const [generatedImageUrl, setGeneratedImageUrl] = useState(""); 
 
   return (
-    <div className="w-full min-h-screen text-white flex items-center justify-center p-4">
+    <div className="w-full min-h-screen border border-white border-opacity-10 text-white flex items-center justify-center p-4">
       <div className="relative w-full max-w-6xl" style={{ minHeight: "400px" }}>
         {/* Draggable and Resizable Left Section */}
         <Draggable bounds="parent">

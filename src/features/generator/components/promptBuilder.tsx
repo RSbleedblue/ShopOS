@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import useGenerateImage from "../hooks/useGeneration";
 
 const promptSchema = z.object({
   product: z.string().min(1, "Product is required."),
@@ -70,8 +71,17 @@ const PromptBuilder = () => {
     },
   });
 
-  const onSubmit = (data: unknown) => {
-    console.log("Generated Prompt:", data);
+  const { callApi } = useGenerateImage();
+
+  const onSubmit = (data: { product: string; background: string; placement: string; platform: string; }) => {
+    const promptDetails = {
+      product: data.product,
+      background: data.background,
+      placement: data.placement,
+      platform: data.platform,
+    };
+    
+    callApi(promptDetails);
   };
 
   const generatedPrompt = `${watch("product")}, \n${watch(
