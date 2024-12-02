@@ -1,71 +1,86 @@
 import React, { useState } from "react";
-import Draggable from "react-draggable"; 
+import { useDispatch, useSelector } from "react-redux";
+import Draggable from "react-draggable";
 import { ResizableBox } from "react-resizable";
-import "react-resizable/css/styles.css"; 
+import { RootState } from "@/redux/store";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import "react-resizable/css/styles.css";
+import { deleteProduct } from "@/redux/Slice/productSlice";
+
+interface Position {
+  width: number;
+  height: number;
+}
 
 const AssetEditor = () => {
-  const [userImageUrl, setUserImageUrl] = useState("https://img.freepik.com/free-photo/smiling-young-male-professional-standing-with-arms-crossed-while-making-eye-contact-against-isolated-background_662251-838.jpg?semt=ais_hybrid"); // URL for user's uploaded image
-  const [generatedImageUrl, setGeneratedImageUrl] = useState(""); 
+  const dispatch = useDispatch();
+  const { products, selectedImageIds } = useSelector((state: RootState) => state.product);
+  const selectedImages = products.filter(product => selectedImageIds.includes(product.id));
+  
+  const [imageSizes, setImageSizes] = useState<Record<string, Position>>({});
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onResize = (imageId: string, _: any, data: { size: { width: number; height: number } }) => {
+    setImageSizes(prev => ({
+      ...prev,
+      [imageId]: {
+        width: data.size.width,
+        height: data.size.height
+      }
+    }));
+  };
+
+  const handleDelete = (imageId: string) => {
+    dispatch(deleteProduct([imageId]));
+  };
 
   return (
-    <div className="w-full min-h-screen border border-white border-opacity-10 text-white flex items-center justify-center p-4">
-      <div className="relative w-full max-w-6xl" style={{ minHeight: "400px" }}>
-        {/* Draggable and Resizable Left Section */}
-        <Draggable bounds="parent">
-          <div className="absolute">
+    <div 
+      className="relative w-[30%] h-screen bg-dark border border-white border-opacity-10 asset-editor-container"
+      // Added data attribute for testing
+      data-testid="asset-editor-container"
+    >
+      <p className="p-2 text-gray-300 text-xl font-semibold">Asset Editor</p>
+      {selectedImages.map((image) => (
+        <Draggable key={image.id} bounds="parent" defaultPosition={{ x: 0, y: 0 }}>
+          <div className="absolute cursor-move">
             <ResizableBox
-              width={300}
-              height={300}
-              minConstraints={[200, 200]}
+              width={imageSizes[image.id]?.width || 200}
+              height={imageSizes[image.id]?.height || 200}
+              onResize={(e, data) => onResize(image.id, e, data)}
+              minConstraints={[50, 50]}
               maxConstraints={[500, 500]}
-              resizeHandles={["se", "ne", "nw", "sw"]}
-              className="border-2 border-green-500 relative flex items-center justify-center p-4 bg-black"
+              resizeHandles={['sw', 'se', 'nw', 'ne', 'w', 'e', 'n', 's']}
+              className="relative group"
             >
-              {userImageUrl ? (
+              <div className="w-full h-full relative">
                 <img
-                  src={userImageUrl}
-                  alt="User Uploaded"
-                  className="w-full h-auto object-contain"
+                  src={image.previewUrl}
+                  alt={`Image ${image.id}`}
+                  className="w-full h-full object-contain"
+                  draggable={false}
                 />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <p className="text-green-400 text-lg font-medium">
-                    Place your product and props here
-                  </p>
-                </div>
-              )}
+                <div className="absolute inset-0 border-2 border-dashed border-blue-500 opacity-0 group-hover:opacity-100" />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  onClick={() => handleDelete(image.id)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </ResizableBox>
           </div>
         </Draggable>
+      ))}
 
-        {/* Draggable and Resizable Right Section */}
-        <Draggable bounds="parent">
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2">
-            <ResizableBox
-              width={300}
-              height={300}
-              minConstraints={[200, 200]}
-              maxConstraints={[500, 500]}
-              resizeHandles={["se", "ne", "nw", "sw"]}
-              className="border-2 border-blue-500 relative flex items-center justify-center p-4 bg-black"
-            >
-              {generatedImageUrl ? (
-                <img
-                  src={generatedImageUrl}
-                  alt="Generated"
-                  className="w-full h-auto object-contain"
-                />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <p className="text-blue-400 text-lg font-medium">
-                    Generated image will appear here
-                  </p>
-                </div>
-              )}
-            </ResizableBox>
-          </div>
-        </Draggable>
-      </div>
+      {selectedImages.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+          Select images from the library to create your composition
+        </div>
+      )}
     </div>
   );
 };

@@ -80,6 +80,7 @@ const PromptBuilder = () => {
       placement: data.placement,
       platform: data.platform,
     };
+    console.log(promptDetails);
     
     callApi(promptDetails);
   };

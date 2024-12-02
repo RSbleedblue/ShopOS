@@ -1,13 +1,55 @@
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
+import { addGeneratedImage } from '@/redux/Slice/productSlice';
+import html2canvas from 'html2canvas';
+
+interface PromptDetails {
+  product: string;
+  background: string;
+  placement: string;
+  platform: string;
+}
 
 const useGenerateImage = () => {
   const [loading, setLoading] = useState(false);
-  const [images, setImages] = useState([]);
   const [error, setError] = useState('');
+  const dispatch = useDispatch();
+  
+  // Get selected images from Redux store
+  const selectedImages = useSelector((state: RootState) => 
+    state.product.products.filter(p => state.product.selectedImageIds.includes(p.id))
+  );
 
-  const callApi = async (promptDetails: { product: string; background: string; placement: string; platform: string; }) => {
-    const api_key = "uCvXEEnlB4wR8tjnWLX7s";
-    const url = "https://api.flair.ai/generate-image/v1";
+  const captureAssetEditorSnapshot = async (): Promise<string | null> => {
+    const assetEditorElement = document.querySelector('.asset-editor-container') as HTMLElement;
+    
+    if (!assetEditorElement) {
+      console.error('Asset editor container not found');
+      return null;
+    }
+
+    try {
+      const canvas = await html2canvas(assetEditorElement, {
+        useCORS: true,
+        scale: 1,
+        logging: false,
+        imageTimeout: 0
+      });
+
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      console.error('Failed to capture asset editor snapshot:', error);
+      return null;
+    }
+  };
+
+  const callApi = async (promptDetails: PromptDetails) => {
+    const api_key = "your_api_key_here";
+    const url = "https://your-image-generation-api.com/generate";
+
+    // Capture snapshot of current asset editor state
+    const referenceSnapshot = await captureAssetEditorSnapshot();
 
     setLoading(true);
     setError('');
@@ -27,7 +69,9 @@ const useGenerateImage = () => {
           num_inference_steps: 25,
           width: 1024,
           height: 1024,
-          seed: 42
+          seed: 42,
+          reference_image: referenceSnapshot, // Include the captured snapshot
+          reference_images: selectedImages.map(img => img.previewUrl) // Include selected images
         })
       });
 
@@ -36,9 +80,19 @@ const useGenerateImage = () => {
       }
 
       const result = await response.json();
-      setImages(result.images);
+      
+      // Dispatch generated images to Redux store
+      result.images.forEach((imageUrl: string, index: number) => {
+        dispatch(addGeneratedImage({
+          id: `generated-${Date.now()}-${index}`,
+          previewUrl: imageUrl,
+          prompt: `${promptDetails.product}, ${promptDetails.background}, ${promptDetails.placement}, ${promptDetails.platform}`
+        }));
+      });
+
     } catch (error) {
       setError('There has been a problem with your fetch operation: ' + error.message);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -47,7 +101,6 @@ const useGenerateImage = () => {
   return {
     callApi,
     loading,
-    images,
     error
   };
 };
