@@ -1,4 +1,7 @@
-import { useState } from "react";
+import React from "react";
+import { addProduct, selectImage } from "@/redux/Slice/productSlice";
+import { RootState } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux"; 
 
 interface ImagePreview {
   id: string;
@@ -6,27 +9,29 @@ interface ImagePreview {
 }
 
 const AddProduct = () => {
-  const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
+  const dispatch = useDispatch();
+  const storedProducts = useSelector((state: RootState) => state.product.products);
+  const selectedImages = useSelector((state: RootState) => state.product.selectedImageIds);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    const newImagePreviews: ImagePreview[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    Array.from(files).forEach((file, index) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        newImagePreviews.push({
-          id: (Date.now() + i).toString(),
+        const newImagePreview: ImagePreview = {
+          id: `${Date.now()}-${index}`,
           previewUrl: reader.result as string, 
-        });
-        if (newImagePreviews.length === files.length) {
-          setImagePreviews((prev) => [...prev, ...newImagePreviews]);
-        }
+        };
+        dispatch(addProduct(newImagePreview));
       };
       reader.readAsDataURL(file);
-    }
+    });
+  };
+
+  const handleImageClick = (imageId: string) => {
+    dispatch(selectImage(imageId));
   };
 
   return (
@@ -36,7 +41,7 @@ const AddProduct = () => {
       <div className="flex items-center">
         <label
           htmlFor="file-upload"
-          className="inline-flex items-center px-5 py-2 transition-all duration-300 border-2 border-white rounded-lg cursor-pointer hover:border-orange-400"
+          className="inline-flex items-center px-5 py-2 transition-all duration-300 border border-opacity-10 border-white rounded-lg cursor-pointer hover:border-orange"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -62,13 +67,16 @@ const AddProduct = () => {
           />
         </label>
       </div>
-      {/* Display the image previews */}
       <div className="flex flex-wrap gap-3 mt-4">
-        {imagePreviews.map((image) => (
+        {storedProducts.map((image) => (
           <div
             key={image.id}
-            id={image.id}
-            className="w-[100px] h-[100px] border-2 p-[2px] border-white relative rounded-md overflow-hidden"
+            onClick={() => handleImageClick(image.id)}
+            className={`w-[100px] h-[100px] border p-[2px] border-opacity-10 rounded-md overflow-hidden cursor-pointer hover:scale-105 transition-all relative
+              ${selectedImages.includes(image.id) 
+                ? 'border-orange border-2' 
+                : 'border-white hover:border-orange'
+              }`}
           >
             <img
               src={image.previewUrl}
